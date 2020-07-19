@@ -21,6 +21,7 @@ class Product(Base):
     image_url = Column(String(1000))
     size = Column(Numeric())
     weight = Column(Numeric())
+    unit = Column(String(100))
     created_date = Column(Date, nullable=False)
 
     @property
@@ -34,6 +35,7 @@ class Product(Base):
             'image_url': self.image_url,
             'size': self.size,
             'weight': self.weight,
+            'unit': self.unit,
             'created_date': self.created_date,
         }
 

@@ -21,7 +21,6 @@ session = DBSession()
 @app.route('/test', methods=['POST'])
 def test():
     data = request.get_json(silent=True)
-    print(data)
     selected_product = data['selected_product']
     order_quantity = data['order_quantity']
 
@@ -34,54 +33,41 @@ def test():
     return jsonify(output)
 
 @app.route('/load', methods=['GET'])
-def load():
-    output = {
-"messages": [
-    {
-      "attachment":{
-        "type":"template",
-        "payload":{
-          "template_type":"generic",
-          "image_aspect_ratio": "square",
-          "elements":[
-            {
-              "title":"Chatfuel Rockets Jersey",
-              "image_url":"https://drive.google.com/uc?id=1vfbVYALZDAtogPLgY84kcaAhVsLt9GzF",
-              "subtitle":"Size: M",
-              "buttons":[
+def loadProducts():
+    products = session.query(Product)
+    elements = []
+    for product in products:
+        element = {
+            "title": "{}".format(product.title),
+            "image_url": "{}".format(product.image_url),
+            "subtitle": "{} ({} {})".format(product.detail, product.weight, product.unit),
+            "buttons": [
                 {
-                  "set_attributes":
-                    {
-                      "selected_product": "Chatfuel Rockets Jersey",
+                    "set_attributes": {
+                        "selected_product": "{}".format(product.title),
+                        "selected_product_id": product.id,
                     },
-                  "block_names": ["Cart"],
-                  "type": "show_block",
-                  "title": "Add to Cart"
+                    "block_names": ["Cart"],
+                    "type": "show_block",
+                    "title": "Add to Cart"
                 }
-              ]
-            },
-            {
-              "title":"Chatfuel Rockets Jersey",
-              "image_url":"https://rockets.chatfuel.com/assets/shirt.jpg",
-              "subtitle":"Size: L",
-              "default_action": {
-                "type": "web_url",
-                "url": "https://rockets.chatfuel.com/store"
-              },
-              "buttons":[
-                {
-                  "type":"web_url",
-                  "url":"https://rockets.chatfuel.com/store",
-                  "title":"View Item"
-                }
-              ]
-            }
-          ]
+            ]
         }
-      }
+        elements.append(element)
+    output = {
+        "messages": [
+            {
+                "attachment": {
+                    "type":"template",
+                    "payload":{
+                        "template_type":"generic",
+                        "image_aspect_ratio": "square",
+                        "elements":elements
+                    }
+                }
+            }
+        ]
     }
-  ]
-}
     return jsonify(output)
 
 
