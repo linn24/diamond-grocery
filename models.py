@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Date, Numeric
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
+import os
 
 Base = declarative_base()
 
@@ -110,5 +111,5 @@ class PurchaseHistory(Base):
             'product_id': self.product_id,
         }
 
-engine = create_engine('postgres://utjmysjpzohqng:5b243341bd509414fc273bd3e46822f4f3d6dcb19533e007cd77b0b78810efbf@ec2-35-173-94-156.compute-1.amazonaws.com:5432/df9gvh2e5qpm0l')
+engine = create_engine(os.environ['DATABASE_URL'])
 Base.metadata.create_all(engine)

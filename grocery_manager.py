@@ -11,7 +11,7 @@ import os
 app = Flask(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-engine = create_engine('postgres://utjmysjpzohqng:5b243341bd509414fc273bd3e46822f4f3d6dcb19533e007cd77b0b78810efbf@ec2-35-173-94-156.compute-1.amazonaws.com:5432/df9gvh2e5qpm0l')
+engine = create_engine(os.environ['DATABASE_URL'])
 Base.metadata.bind = create_engine
 
 DBSession = sessionmaker(bind=engine)
