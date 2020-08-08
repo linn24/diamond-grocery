@@ -5,8 +5,53 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 import os
+from decouple import config
+from passlib.hash import bcrypt
 
 Base = declarative_base()
+
+class User(Base):
+    """
+    Registered user information
+    """
+    __tablename__ = 't_user'
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String(250), nullable=False)
+    password = Column(String(250), nullable=False)
+    name = Column(String(250), nullable=False)
+    picture = Column(String(250))
+
+    def __init__(self, email, password, name, picture):
+        self.email = email
+        self.password = bcrypt.encrypt(password)
+        self.name = name
+        self.picture = picture
+
+    def validate_password(self, password):
+        return bcrypt.verify(password, self.password)
+
+    def __repr__(self):
+        return "<User(email ='%s', password='%s', name='%s')>" % (self.email, self.password, self.name)
+
+class Category(Base):
+    """
+    Category to group products
+    """
+    __tablename__ = 't_category'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(80), nullable=False, unique=True)
+
+    user_id = Column(Integer, ForeignKey('t_user.id'))
+    user = relationship(User)
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user_id': self.user_id,
+        }
 
 class Product(Base):
     """
@@ -25,6 +70,14 @@ class Product(Base):
     unit = Column(String(100))
     created_date = Column(Date, nullable=False)
 
+    cat_id = Column(
+                Integer, ForeignKey(
+                    't_category.id', ondelete='CASCADE'), nullable=False)
+    category = relationship(Category)
+
+    user_id = Column(Integer, ForeignKey('t_user.id'))
+    user = relationship(User)
+
     @property
     def serialize(self):
         return {
@@ -38,8 +91,9 @@ class Product(Base):
             'weight': self.weight,
             'unit': self.unit,
             'created_date': self.created_date,
+            'cat_id': self.cat_id,
+            'user_id': self.user_id,
         }
-
 
 class Customer(Base):
     """
@@ -86,30 +140,81 @@ class Cart(Base):
             'product_id': self.product_id,
         }
 
-class PurchaseHistory(Base):
+class OrderStatus(Base):
     """
-    Customer's Purchase History
+    Status of each order
     """
-    __tablename__ = 't_purchasehistory'
+    __tablename__ = 't_orderstatus'
+
     id = Column(Integer, primary_key=True)
-    quantity = Column(Integer, nullable=False)
+    name = Column(String(250), nullable=False, unique=True)
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
+
+class Order(Base):
+    """
+    Customer's Order
+    """
+    __tablename__ = 't_order'
+    id = Column(Integer, primary_key=True)
+    ref_number = Column(String(100), nullable=False)
     purchased_date = Column(Date, nullable=False)
+    completed_date = Column(Date, nullable=False)
+    total_amount = Column(Numeric(), nullable=False)
+
 
     customer_id = Column(Integer, ForeignKey('t_customer.id'))
     customer = relationship(Customer)
 
+    status_id = Column(Integer, ForeignKey('t_orderstatus.id'))
+    status = relationship(OrderStatus)
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'ref_number': self.ref_number,
+            'purchased_date': self.purchased_date,
+            'completed_date': self.completed_date,
+            'customer_id': self.customer_id,
+            'status_id': self.status_id,
+            'total_amount': self.total_amount,
+        }
+
+class OrderItem(Base):
+    """
+    Item included in each order
+    """
+    __tablename__ = 't_orderitem'
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer, nullable=False)
+    total_amount = Column(Numeric(), nullable=False)
+
     product_id = Column(Integer, ForeignKey('t_product.id'))
     product = relationship(Product)
+
+    order_id = Column(Integer, ForeignKey('t_order.id'))
+    order = relationship(Order)
 
     @property
     def serialize(self):
         return {
             'id': self.id,
             'quantity': self.quantity,
-            'purchased_date': self.purchased_date,
-            'customer_id': self.customer_id,
+            'total_amount': self.total_amount,
             'product_id': self.product_id,
+            'order_id': self.order_id,
         }
 
-engine = create_engine(os.environ['DATABASE_URL'])
+db_url = ''
+try:
+    db_url = os.environ['DATABASE_URL']
+except KeyError as e:
+    db_url = config('DATABASE_URL')
+
+engine = create_engine(db_url)
 Base.metadata.create_all(engine)

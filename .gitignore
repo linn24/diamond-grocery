@@ -1,2 +1,4 @@
 diamond-env/
 __pycache__/
+.env
+create_admin_users.py
