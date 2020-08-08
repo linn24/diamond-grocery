@@ -8,7 +8,7 @@ Flask-SQLAlchemy==2.3.2
 idna==2.6
 itsdangerous==0.24
 Jinja2==2.10
-MarkupSafe==1.0
+MarkupSafe==1.1.1
 packaging==17.1
 passlib==1.7.2
 psycopg2-binary==2.7.4
