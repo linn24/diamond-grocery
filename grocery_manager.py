@@ -4,6 +4,7 @@
 
 from flask import Flask, request, jsonify, render_template, flash, redirect, url_for
 from flask import session as login_session
+from flask_talisman import Talisman
 from models import Base, User, Category, Product, Customer, Cart, Order, OrderStatus, OrderItem
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -14,6 +15,7 @@ import random
 import string
 
 app = Flask(__name__)
+Talisman(app)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 db_url = ''
