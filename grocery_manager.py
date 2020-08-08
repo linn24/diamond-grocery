@@ -15,7 +15,26 @@ import random
 import string
 
 app = Flask(__name__)
-Talisman(app)
+csp = {
+    'default-src': [
+        '\'self\'',
+        'data:'
+    ],
+    'img-src': [
+        '\'self\'',
+        'https://source.unsplash.com',
+        'https://images.unsplash.com'
+    ],
+    'style-src-elem': [
+        '\'self\'',
+        'https://fonts.googleapis.com'
+    ],
+    'font-src': [
+        '\'self\'',
+        'https://fonts.gstatic.com'
+    ]
+}
+talisman = Talisman(app, content_security_policy=csp)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 db_url = ''
