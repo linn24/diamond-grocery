@@ -162,7 +162,9 @@ def viewProducts():
 @app.route('/customer', methods=['GET'])
 @login_required
 def viewCustomers():
-    return render_template('index.html')
+    customers = session.query(Customer).order_by(Customer.name.asc())
+    return render_template(
+        'customers.html', customers=customers)
 
 @app.route('/cart', methods=['GET'])
 @login_required
@@ -203,17 +205,36 @@ def createCategory():
     else:
         return render_template('create_category.html')
 
-@app.route('/product/create', methods=['GET'])
+@app.route('/product/create', methods=['GET', 'POST'])
 @login_required
 def createProduct():
     return render_template('index.html')
 
-@app.route('/customer/create', methods=['GET'])
+@app.route('/customer/create', methods=['GET', 'POST'])
 @login_required
 def createCustomer():
-    return render_template('index.html')
+    """
+    method/class name: create a new customer with given name
+    Args:
+        no argument
+    Returns:
+        redirect to view all customers page after saving
+        redirect to create new customer page otherwise
+    """
+    if request.method == 'POST':
+        customer = Customer(
+            name=request.form['strCustomerName'],
+            email=request.form['strCustomerEmail'],
+            phone=request.form['strCustomerPhone'],
+            address=request.form['strCustomerAddress'])
 
-@app.route('/cart/create', methods=['GET'])
+        session.add(customer)
+        session.commit()
+        return redirect(url_for('viewCustomers'))
+    else:
+        return render_template('create_customer.html')
+
+@app.route('/cart/create', methods=['GET', 'POST'])
 @login_required
 def createCart():
     return render_template('index.html')
@@ -262,6 +283,35 @@ def editCategory(cat_id):
         return redirect(url_for('viewCategories'))
     else:
         return render_template('edit_category.html', category=category)
+
+@app.route('/customer/<string:customer_id>', methods=['GET', 'POST'])
+@login_required
+def editCustomer(customer_id):
+    """
+    method/class name: edit an existing customer with given name
+    Args:
+        no argument
+    Returns:
+        redirect to view all customers page after saving
+        redirect to edit customer page otherwise
+    """
+    customer = session.query(Customer).filter_by(id=customer_id).one_or_none()
+
+    if request.method == 'POST':
+        if request.form['strCustomerName']:
+            customer.name = request.form['strCustomerName']
+        if request.form['strCustomerEmail']:
+            customer.email = request.form['strCustomerEmail']
+        if request.form['strCustomerPhone']:
+            customer.phone = request.form['strCustomerPhone']
+        if request.form['strCustomerAddress']:
+            customer.address = request.form['strCustomerAddress']
+
+        session.add(customer)
+        session.commit()
+        return redirect(url_for('viewCustomers'))
+    else:
+        return render_template('edit_customer.html', customer=customer)
 
 @app.route('/order_status/<string:order_status_id>', methods=['GET', 'POST'])
 @login_required
