@@ -196,7 +196,8 @@ def viewOrderStatuses():
 @app.route('/order', methods=['GET'])
 @login_required
 def viewOrders():
-    return render_template('index.html')
+    orders = session.query(Order).order_by(Order.purchased_date.desc())
+    return render_template('orders.html', orders=orders)
 
 @app.route('/category/create', methods=['GET', 'POST'])
 @login_required
@@ -318,7 +319,7 @@ def checkoutCart():
     today = date.today()
 
     order = Order(
-        ref_number='ORD{}{}{}{}{}{}'.format(today.year, today.month, today.day, customer_id, total_amount, cart.count()),
+        ref_number='ORD-{}{}{}-{}-{}{}'.format(today.year, today.month, today.day, customer_id, total_amount, cart.count()),
         purchased_date=today,
         total_amount=total_amount,
         customer_id=customer_id,
@@ -339,9 +340,16 @@ def checkoutCart():
     cart.delete()
     session.commit()
     flash("Successfully placed order.")
-    # to redirect to order details page
-    return render_template('index.html')
+    return redirect(url_for('viewOrder', order_id=order.id))
 
+@app.route('/order/<string:order_id>', methods=['GET'])
+@login_required
+def viewOrder(order_id):
+    order = session.query(Order).filter_by(id=order_id).one_or_none()
+    order_items = session.query(OrderItem).filter_by(order_id=order_id)
+    return render_template(
+        'view_order.html', order=order, order_items=order_items
+    )
 
 @app.route('/order_status/create', methods=['GET', 'POST'])
 @login_required
