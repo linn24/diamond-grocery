@@ -166,7 +166,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True)
     ref_number = Column(String(100), nullable=False)
     purchased_date = Column(Date, nullable=False)
-    completed_date = Column(Date, nullable=False)
+    completed_date = Column(Date)
     total_amount = Column(Numeric(), nullable=False)
 
 

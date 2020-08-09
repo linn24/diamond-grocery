@@ -79,16 +79,9 @@
 
   <!-- Nav Item - Carts Collapse Menu -->
   <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCarts" aria-expanded="true" aria-controls="collapseCarts">
+    <a class="nav-link" href="{{url_for('searchCart')}}">
       <i class="fas fa-fw fa-shopping-cart"></i>
-      <span>Carts</span>
-    </a>
-    <div id="collapseCarts" class="collapse" data-parent="#accordionSidebar">
-      <div class="bg-white py-2 collapse-inner rounded">
-        <a class="collapse-item" href="{{url_for('viewCarts')}}">View All</a>
-        <a class="collapse-item" href="{{url_for('createCart')}}">Create New Cart</a>
-      </div>
-    </div>
+      <span>Cart</span></a>
   </li>
 
 

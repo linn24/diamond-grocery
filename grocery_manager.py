@@ -169,10 +169,22 @@ def viewCustomers():
     return render_template(
         'customers.html', customers=customers)
 
-@app.route('/cart', methods=['GET'])
+@app.route('/cart', methods=['GET', 'POST'])
 @login_required
-def viewCarts():
-    return render_template('index.html')
+def searchCart():
+    customers = session.query(Customer).order_by(Customer.name.asc())
+    products = session.query(Product).order_by(Product.id.asc())
+    cart = None
+    customer = None
+    total_amount = 0
+    if request.method == 'POST':
+        customer_id = request.form['strCustomer']
+        customer = session.query(Customer).filter_by(id=customer_id).one_or_none()
+        cart = session.query(Cart).filter_by(customer_id=customer_id).order_by(Cart.added_date.desc())
+        for item in cart:
+            total_amount += item.product.price * item.quantity
+    return render_template(
+        'cart.html', customers=customers, products=products, cart=cart, total_amount=total_amount, customer=customer)
 
 @app.route('/order_status', methods=['GET'])
 @login_required
@@ -264,10 +276,72 @@ def createCustomer():
     else:
         return render_template('create_customer.html')
 
-@app.route('/cart/create', methods=['GET', 'POST'])
+@app.route('/add_to_cart', methods=['POST'])
 @login_required
-def createCart():
+def addToCart():
+    customers = session.query(Customer).order_by(Customer.name.asc())
+    products = session.query(Product).order_by(Product.id.asc())
+    customer_id = request.form['strCustomer']
+    product_id = request.form['strProduct']
+    quantity = int(request.form['strQuantity'])
+    customer = session.query(Customer).filter_by(id=customer_id).one_or_none()
+    total_amount = 0
+
+
+    cart_item = session.query(Cart).filter_by(customer_id=customer_id, product_id=product_id).one_or_none()
+    if cart_item is None:
+        cart_item = Cart(
+            product_id=product_id,
+            customer_id=customer_id,
+            quantity=quantity,
+            added_date=date.today()
+        )
+    else:
+        cart_item.quantity += quantity
+        cart_item.added_date = date.today()
+    session.add(cart_item)
+    session.commit()
+
+    cart = session.query(Cart).filter_by(customer_id=customer_id).order_by(Cart.added_date.desc())
+    for item in cart:
+        total_amount += item.product.price * item.quantity
+    return render_template(
+        'cart.html', customers=customers, products=products, cart=cart, total_amount=total_amount, customer=customer)
+
+@app.route('/checkout', methods=['POST'])
+@login_required
+def checkoutCart():
+    customer_id = request.form['strCustomer']
+    total_amount = int(request.form['strTotalAmount'])
+
+    cart = session.query(Cart).filter_by(customer_id=customer_id)
+    today = date.today()
+
+    order = Order(
+        ref_number='ORD{}{}{}{}{}{}'.format(today.year, today.month, today.day, customer_id, total_amount, cart.count()),
+        purchased_date=today,
+        total_amount=total_amount,
+        customer_id=customer_id,
+        status_id=1
+    )
+    session.add(order)
+    session.flush()
+
+    for item in cart:
+        order_item = OrderItem(
+            quantity=item.quantity,
+            total_amount=item.product.price * item.quantity,
+            product_id=item.product.id,
+            order_id=order.id
+        )
+        session.add(order_item)
+
+    cart.delete()
+    session.commit()
+    flash("Successfully placed order.")
+    # to redirect to order details page
     return render_template('index.html')
+
 
 @app.route('/order_status/create', methods=['GET', 'POST'])
 @login_required
