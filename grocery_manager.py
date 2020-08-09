@@ -13,6 +13,7 @@ from decouple import config
 from functools import wraps
 import random
 import string
+from datetime import date
 
 app = Flask(__name__)
 csp = {
@@ -157,7 +158,9 @@ def viewCategories():
 @app.route('/product', methods=['GET'])
 @login_required
 def viewProducts():
-    return render_template('index.html')
+    products = session.query(Product).order_by(Product.id.asc())
+    return render_template(
+        'products.html', products=products)
 
 @app.route('/customer', methods=['GET'])
 @login_required
@@ -208,13 +211,40 @@ def createCategory():
 @app.route('/product/create', methods=['GET', 'POST'])
 @login_required
 def createProduct():
-    return render_template('index.html')
+    """
+    method/class name: create a new product with given details
+    Args:
+        no argument
+    Returns:
+        redirect to view all products page after saving
+        redirect to create new product page otherwise
+    """
+    if request.method == 'POST':
+        product = Product(
+            cat_id=request.form['strProductCategory'],
+            title=request.form['strProductTitle'],
+            detail=request.form['strProductDetail'],
+            brand=request.form['strProductBrand'],
+            price=request.form['strProductPrice'],
+            image_url=request.form['strProductImageUrl'],
+            size=None if request.form['strProductSize'] == "" else request.form['strProductSize'],
+            weight=None if request.form['strProductWeight'] == "" else request.form['strProductWeight'],
+            unit=request.form['strProductUnit'],
+            last_updated_date=date.today(),
+            user_id=login_session['user_id'])
+
+        session.add(product)
+        session.commit()
+        return redirect(url_for('viewProducts'))
+    else:
+        categories = session.query(Category).order_by(Category.id.asc())
+        return render_template('create_product.html', categories=categories)
 
 @app.route('/customer/create', methods=['GET', 'POST'])
 @login_required
 def createCustomer():
     """
-    method/class name: create a new customer with given name
+    method/class name: create a new customer with given details
     Args:
         no argument
     Returns:
@@ -283,6 +313,52 @@ def editCategory(cat_id):
         return redirect(url_for('viewCategories'))
     else:
         return render_template('edit_category.html', category=category)
+
+@app.route('/product/<string:product_id>', methods=['GET', 'POST'])
+@login_required
+def editProduct(product_id):
+    """
+    method/class name: edit an existing product with given details
+    Args:
+        no argument
+    Returns:
+        redirect to view all products page after saving
+        redirect to edit product page otherwise
+    """
+    product = session.query(Product).filter_by(id=product_id).one_or_none()
+
+    if request.method == 'POST':
+        if request.form['strProductCategory']:
+            product.cat_id = request.form['strProductCategory']
+        if request.form['strProductTitle']:
+            product.title = request.form['strProductTitle']
+            product.last_updated_date = date.today()
+            product.user_id = login_session['user_id']
+        if request.form['strProductDetail']:
+            product.detail = request.form['strProductDetail']
+        if request.form['strProductBrand']:
+            product.brand = request.form['strProductBrand']
+        if request.form['strProductPrice']:
+            product.price = request.form['strProductPrice']
+        if request.form['strProductImageUrl']:
+            product.image_url = request.form['strProductImageUrl']
+        if request.form['strProductSize']:
+            product.size = request.form['strProductSize']
+        else:
+            product.size = None
+        if request.form['strProductWeight']:
+            product.weight = request.form['strProductWeight']
+        else:
+            product.weight = None
+        if request.form['strProductUnit']:
+            product.address = request.form['strProductUnit']
+
+        session.add(product)
+        session.commit()
+        return redirect(url_for('viewProducts'))
+    else:
+        categories = session.query(Category).order_by(Category.id.asc())
+        return render_template('edit_product.html', product=product, categories=categories)
 
 @app.route('/customer/<string:customer_id>', methods=['GET', 'POST'])
 @login_required

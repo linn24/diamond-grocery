@@ -68,7 +68,7 @@ class Product(Base):
     size = Column(Numeric())
     weight = Column(Numeric())
     unit = Column(String(100))
-    created_date = Column(Date, nullable=False)
+    last_updated_date = Column(Date, nullable=False)
 
     cat_id = Column(
                 Integer, ForeignKey(
@@ -90,7 +90,7 @@ class Product(Base):
             'size': self.size,
             'weight': self.weight,
             'unit': self.unit,
-            'created_date': self.created_date,
+            'last_updated_date': self.last_updated_date,
             'cat_id': self.cat_id,
             'user_id': self.user_id,
         }
@@ -150,7 +150,7 @@ class OrderStatus(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False, unique=True)
-    
+
     @property
     def serialize(self):
         return {
