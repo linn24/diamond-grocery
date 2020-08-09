@@ -105,6 +105,7 @@ class Customer(Base):
     name = Column(String(250), nullable=False)
     email = Column(String(250), nullable=False, unique=True)
     phone = Column(String(250))
+    address = Column(String(2500), nullable=False)
 
     @property
     def serialize(self):
@@ -113,6 +114,7 @@ class Customer(Base):
             'name': self.name,
             'email': self.email,
             'phone': self.phone,
+            'address': self.address,
         }
 
 class Cart(Base):
@@ -148,6 +150,7 @@ class OrderStatus(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False, unique=True)
+    
     @property
     def serialize(self):
         return {

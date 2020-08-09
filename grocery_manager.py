@@ -18,7 +18,8 @@ app = Flask(__name__)
 csp = {
     'default-src': [
         '\'self\'',
-        'data:'
+        'data:',
+        'unsafe-inline'
     ],
     'img-src': [
         '\'self\'',
@@ -27,7 +28,13 @@ csp = {
     ],
     'style-src-elem': [
         '\'self\'',
-        'https://fonts.googleapis.com'
+        'https://fonts.googleapis.com',
+        'unsafe-inline'
+    ],
+    'style-src': [
+        '\'self\'',
+        'https://fonts.googleapis.com',
+        'unsafe-inline'
     ],
     'font-src': [
         '\'self\'',
@@ -152,6 +159,27 @@ def viewCategories():
 def viewProducts():
     return render_template('index.html')
 
+@app.route('/customer', methods=['GET'])
+@login_required
+def viewCustomers():
+    return render_template('index.html')
+
+@app.route('/cart', methods=['GET'])
+@login_required
+def viewCarts():
+    return render_template('index.html')
+
+@app.route('/order_status', methods=['GET'])
+@login_required
+def viewOrderStatuses():
+    order_statuses = session.query(OrderStatus).order_by(OrderStatus.id.asc())
+    return render_template(
+        'order_statuses.html', order_statuses=order_statuses)
+
+@app.route('/order', methods=['GET'])
+@login_required
+def viewOrders():
+    return render_template('index.html')
 
 @app.route('/category/create', methods=['GET', 'POST'])
 @login_required
@@ -180,6 +208,37 @@ def createCategory():
 def createProduct():
     return render_template('index.html')
 
+@app.route('/customer/create', methods=['GET'])
+@login_required
+def createCustomer():
+    return render_template('index.html')
+
+@app.route('/cart/create', methods=['GET'])
+@login_required
+def createCart():
+    return render_template('index.html')
+
+@app.route('/order_status/create', methods=['GET', 'POST'])
+@login_required
+def createOrderStatus():
+    """
+    method/class name: create a new order status with given name
+    Args:
+        no argument
+    Returns:
+        redirect to view all order statuses page after saving
+        redirect to create new order status page otherwise
+    """
+    if request.method == 'POST':
+        order_status = OrderStatus(
+            name=request.form['strOrderStatusName'])
+
+        session.add(order_status)
+        session.commit()
+        return redirect(url_for('viewOrderStatuses'))
+    else:
+        return render_template('create_order_status.html')
+
 @app.route('/category/<string:cat_id>', methods=['GET', 'POST'])
 @login_required
 def editCategory(cat_id):
@@ -203,6 +262,29 @@ def editCategory(cat_id):
         return redirect(url_for('viewCategories'))
     else:
         return render_template('edit_category.html', category=category)
+
+@app.route('/order_status/<string:order_status_id>', methods=['GET', 'POST'])
+@login_required
+def editOrderStatus(order_status_id):
+    """
+    method/class name: edit an existing order status with given name
+    Args:
+        no argument
+    Returns:
+        redirect to view all order statuses page after saving
+        redirect to edit order status page otherwise
+    """
+    order_status = session.query(OrderStatus).filter_by(id=order_status_id).one_or_none()
+
+    if request.method == 'POST':
+        if request.form['strOrderStatusName']:
+            order_status.name = request.form['strOrderStatusName']
+
+        session.add(order_status)
+        session.commit()
+        return redirect(url_for('viewOrderStatuses'))
+    else:
+        return render_template('edit_order_status.html', order_status=order_status)
 
 @app.route('/test', methods=['POST'])
 def test():
