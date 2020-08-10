@@ -18,6 +18,7 @@
 
   <!-- Custom styles for this template-->
   <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
 
 </head>
 
@@ -49,11 +50,7 @@
             {% include "message.html" %}
           </div>
 
-          <!-- Content Row -->
-          <div class="row">
 
-            <!-- Content Column -->
-            <div class="col-lg-12 mb-4">
 
               <!-- Order Card -->
               <div class="card shadow mb-4">
@@ -83,9 +80,10 @@
                     <label>Completed Date: <span class="font-weight-bold">{{order.completed_date}}</span></label>
                   </div>
                   {% endif %}
+                  <br/>
 
                   <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <table class="table table-bordered" id="orderItemTable" width="100%" cellspacing="0">
                       <thead>
                         <tr>
                           <th>Product</th>
@@ -114,14 +112,13 @@
                       </tbody>
                     </table>
                   </div>
+                  <br/>
                   <div>
                     <span class="float-right font-weight-bold text-primary">Total Amount: Ks.{{order.total_amount}}<span>
                   </div>
                 </div>
               </div>
-            </div>
 
-          </div>
 
         </div>
         <!-- /.container-fluid -->
@@ -150,6 +147,13 @@
 
   <!-- Custom scripts for all pages-->
   <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+  <!-- Page level plugins -->
+  <script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+  <!-- Page level custom scripts -->
+  <script src="{{ url_for('static', filename='js/demo/datatables-order.js') }}"></script>
 
 </body>
 

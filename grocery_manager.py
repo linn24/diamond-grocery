@@ -24,6 +24,7 @@ csp = {
     ],
     'img-src': [
         '\'self\'',
+        'data:',
         'https://source.unsplash.com',
         'https://images.unsplash.com'
     ],
